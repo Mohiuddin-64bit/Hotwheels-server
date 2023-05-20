@@ -30,10 +30,9 @@ async function run() {
     // POST method
     app.post("/addToy", async (req, res) => {
       const body = req.body;
-      console.log(body);
+
       const result = await toyCollection.insertOne(body);
       res.send(result);
-      console.log(result);
     });
 
     // GET method
@@ -58,8 +57,15 @@ async function run() {
       res.send(result);
     });
 
+    // Delete Method
+    app.delete("/deleteToy/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await toyCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     app.get("/allToy/:category", async (req, res) => {
-      console.log(req.params.category);
       if (
         req.params.category === "sports_car" ||
         req.params.category === "truck" ||
@@ -68,7 +74,7 @@ async function run() {
         const result = await toyCollection
           .find({ category: req.params.category })
           .toArray();
-        console.log(result);
+
         res.send(result);
       } else {
         const result = await toyCollection.find({}).toArray();
@@ -82,7 +88,6 @@ async function run() {
         _id: new ObjectId(id),
       });
       res.send(selectedToy);
-      console.log(selectedToy);
     });
 
     app.get("/myToy/:email", async (req, res) => {
