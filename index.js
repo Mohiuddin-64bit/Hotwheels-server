@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
+const { ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
@@ -36,6 +37,27 @@ async function run() {
     });
 
     // GET method
+    app.get("/allToy", async (req, res) => {
+      const result = await toyCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Update Method
+    app.put("/updateToy/:id", async (req, res) => {
+      const id = req.params.id;
+      const body = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          price: body.price,
+          quantity: body.quantity,
+          description: body.description,
+        },
+      };
+      const result = await toyCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     app.get("/allToy/:category", async (req, res) => {
       console.log(req.params.category);
       if (
@@ -46,9 +68,31 @@ async function run() {
         const result = await toyCollection
           .find({ category: req.params.category })
           .toArray();
-          console.log(result)
-          res.send(result);
-      } 
+        console.log(result);
+        res.send(result);
+      } else {
+        const result = await toyCollection.find({}).toArray();
+        res.send(result);
+      }
+    });
+
+    app.get("/allToy/carDetails/:id", async (req, res) => {
+      const id = req.params.id;
+      const selectedToy = await toyCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(selectedToy);
+      console.log(selectedToy);
+    });
+
+    app.get("/myToy/:email", async (req, res) => {
+      const email = req.params.email;
+      let query = {};
+      if (email) {
+        query = { email: email };
+      }
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
@@ -64,9 +108,6 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("hotwheels is running");
-});
-app.get("/addToy", (req, res) => {
   res.send("hotwheels is running");
 });
 
