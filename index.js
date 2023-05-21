@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const toyCollection = client
       .db("hotwheels")
       .collection("hotwheelsCollection");
@@ -30,13 +30,13 @@ async function run() {
     // POST method
     app.post("/addToy", async (req, res) => {
       const body = req.body;
-
       const result = await toyCollection.insertOne(body);
       res.send(result);
     });
 
     // GET method
     app.get("/allToy", async (req, res) => {
+      // const limit = 20;
       const result = await toyCollection.find().toArray();
       res.send(result);
     });
@@ -44,6 +44,7 @@ async function run() {
     // Update Method
     app.put("/updateToy/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id)
       const body = req.body;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -97,6 +98,24 @@ async function run() {
         query = { email: email };
       }
       const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // indexing for search
+    const indexKey = { toyName: 1, category: 1 };
+    const indexOptions = { name: "toyCategory" };
+    const result = await toyCollection.createIndex(indexKey, indexOptions);
+
+    app.get("/toySearchByName/:text", async (req, res) => {
+      const searchText = req.params.text;
+      const result = await toyCollection
+        .find({
+          $or: [
+            { toyName: { $regex: searchText, $options: "i" } },
+            { category: { $regex: searchText, $options: "i" } },
+          ],
+        })
+        .toArray();
       res.send(result);
     });
 
