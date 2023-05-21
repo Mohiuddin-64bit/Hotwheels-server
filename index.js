@@ -66,6 +66,7 @@ async function run() {
       res.send(result);
     });
 
+    // gat method
     app.get("/allToy/:category", async (req, res) => {
       if (
         req.params.category === "sports_car" ||
